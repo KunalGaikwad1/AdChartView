@@ -64,7 +64,7 @@ export default function Navbar() {
             <TrendingUp className="h-6 w-6 text-primary-foreground" />
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-lg font-bold text-foreground">StockTips Pro</span>
+            <span className="text-lg font-bold text-foreground">AdChartView</span>
             <small className="text-xs text-muted-foreground -mt-1">Actionable stock ideas</small>
           </div>
         </Link>
