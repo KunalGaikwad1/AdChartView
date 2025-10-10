@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,18 +13,30 @@ import {
 } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const search = useSearchParams();
+  const { toast } = useToast();
 
   // Redirect after login based on role
   useEffect(() => {
     if (session) {
-      if (session.user!.role === "admin") router.replace("/admin/dashboard");
+  const role = (session.user as { role?: string | null } | undefined)?.role || undefined;
+      if (role === "admin") router.replace("/admin/dashboard");
       else router.replace("/user");
     }
   }, [session, router]);
+
+  // If NextAuth redirected back with an error param, show destructive toast
+  useEffect(() => {
+    const err = search?.get("error");
+    if (err) {
+      toast({ title: "Sign in failed", description: err, variant: "destructive" });
+    }
+  }, [search, toast]);
 
   if (status === "loading") {
     return (

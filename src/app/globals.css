@@ -120,3 +120,36 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Toast animations */
+@keyframes toast-enter {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toast-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.98); }
+}
+
+.toast-enter {
+  animation: toast-enter 180ms ease-out forwards;
+}
+.toast-exit {
+  animation: toast-exit 180ms ease-in forwards;
+}
+
+/* Toast progress bar (uses CSS var --toast-duration for timing) */
+.toast-progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  background: color-mix(in oklab, var(--ring) 65%, transparent);
+  transform-origin: left;
+  width: 100%;
+  animation: toast-progress var(--toast-duration, 5000ms) linear forwards;
+}
+@keyframes toast-progress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
