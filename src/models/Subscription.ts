@@ -1,18 +1,14 @@
-// models/Subscription.ts
-import mongoose, { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
-const SubscriptionSchema = new Schema({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-    unique: true,
+const SubscriptionSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    duration: { type: String, required: true },
+    description: { type: String },
   },
-  isActive: { type: Boolean, default: false },
-  subscribedAt: { type: Date, default: Date.now },
-  expiresAt: { type: Date },
-});
+  { timestamps: true }
+);
 
-const Subscription =
-  mongoose.models.Subscription || model("Subscription", SubscriptionSchema);
-export default Subscription;
+export default mongoose.models.Subscription ||
+  mongoose.model("Subscription", SubscriptionSchema);
