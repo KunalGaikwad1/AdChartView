@@ -5,16 +5,28 @@ import type { ReactNode } from "react";
 
 export type ToastActionElement = ReactNode;
 
+export type ToastVariant =
+  | "default"
+  | "success"
+  | "destructive"
+  | "warning"
+  | "info";
+
 export type ToastProps = {
   title?: ReactNode;
   description?: ReactNode;
   action?: ToastActionElement;
+  variant?: ToastVariant;
+  icon?: ReactNode;
+  // How long the toast stays visible before auto-dismiss (ms)
+  duration?: number;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 };
 
 const TOAST_LIMIT = 3; // Max number of toasts visible at once
-const TOAST_REMOVE_DELAY = 5000; // 5 seconds
+const TOAST_DURATION_DEFAULT = 5000; // auto-dismiss after 5s
+const TOAST_EXIT_DURATION = 250; // removal delay after dismissed (for exit animation)
 
 type ToasterToast = ToastProps & {
   id: string;
@@ -54,7 +66,7 @@ const addToRemoveQueue = (toastId: string) => {
   const timeout = setTimeout(() => {
     toastTimeouts.delete(toastId);
     dispatch({ type: "REMOVE_TOAST", toastId });
-  }, TOAST_REMOVE_DELAY);
+  }, TOAST_EXIT_DURATION);
 
   toastTimeouts.set(toastId, timeout);
 };
@@ -106,6 +118,7 @@ type Toast = Omit<ToasterToast, "id">;
 
 function toast(props: Toast) {
   const id = genId();
+  const duration = props.duration ?? TOAST_DURATION_DEFAULT;
 
   const update = (props: Partial<ToasterToast>) =>
     dispatch({ type: "UPDATE_TOAST", toast: { ...props, id } });
@@ -117,12 +130,18 @@ function toast(props: Toast) {
     toast: {
       ...props,
       id,
+      duration,
       open: true,
       onOpenChange: (open) => {
         if (!open) dismiss();
       },
     },
   });
+
+  // Auto-dismiss after duration
+  setTimeout(() => {
+    dismiss();
+  }, duration);
 
   return { id, dismiss, update };
 }
