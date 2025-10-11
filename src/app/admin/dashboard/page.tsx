@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, TrendingUp, DollarSign, Eye } from "lucide-react";
+import { Users, TrendingUp, DollarSign, Eye, Crown } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 interface DashboardStats {
@@ -35,7 +35,7 @@ export default function AdminDashboard() {
     if (status === "loading") return;
 
     if (!session) {
-      router.push("/");
+      router.push("/login");
       return;
     }
 
@@ -73,7 +73,8 @@ export default function AdminDashboard() {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold mb-8">Admin Dashboard</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* ===== Top Stats ===== */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -92,22 +93,18 @@ export default function AdminDashboard() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {stats.activeSubscribers}
-              </div>
+              <div className="text-2xl font-bold">{stats.activeSubscribers}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Revenue
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${stats.totalRevenue.toFixed(2)}
+                ₹{stats.totalRevenue.toFixed(2)}
               </div>
             </CardContent>
           </Card>
@@ -136,8 +133,9 @@ export default function AdminDashboard() {
               <div className="text-2xl font-bold">{stats.recentLogins}</div>
             </CardContent>
           </Card>
-          {/* ====== Bottom Navigation Cards ====== */}
         </div>
+
+        {/* ===== Navigation Cards ===== */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card
             className="cursor-pointer hover:bg-muted/50 transition"
@@ -183,6 +181,22 @@ export default function AdminDashboard() {
               <h3 className="font-semibold">Manage Tips</h3>
               <p className="text-sm text-muted-foreground">
                 Post and manage stock tips
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ✅ NEW Subscription Plans Card */}
+          <Card
+            className="cursor-pointer hover:bg-muted/50 transition"
+            onClick={() => router.push("/admin/subscriptions")}
+          >
+            <CardContent className="pt-6">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Crown className="h-4 w-4 text-yellow-500" />
+                Manage Subscription Plans
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Create, update or remove user subscription plans
               </p>
             </CardContent>
           </Card>
