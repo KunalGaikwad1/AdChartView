@@ -104,11 +104,11 @@ export default function TipsPage() {
               {equityTips.map((tip) => (
                 <TipCard
                   key={tip._id}
-                  stockName={tip.stock_name}
+                  stockName={tip.stockName}
                   action={tip.action as "BUY" | "SELL"}
-                  entryPrice={tip.entry_price}
-                  targetPrice={tip.target_price}
-                  stopLoss={tip.stop_loss}
+                  entryPrice={tip.entryPrice}
+                  targetPrice={tip.targetPrice}
+                  stopLoss={tip.stopLoss}
                   timeframe={tip.timeframe}
                   confidence={tip.confidence as "HIGH" | "MEDIUM" | "LOW"}
                 />
@@ -119,11 +119,11 @@ export default function TipsPage() {
               {futureTips.map((tip) => (
                 <TipCard
                   key={tip._id}
-                  stockName={tip.stock_name}
+                  stockName={tip.stockName}
                   action={tip.action as "BUY" | "SELL"}
-                  entryPrice={tip.entry_price}
-                  targetPrice={tip.target_price}
-                  stopLoss={tip.stop_loss}
+                  entryPrice={tip.entryPrice}
+                  targetPrice={tip.targetPrice}
+                  stopLoss={tip.stopLoss}
                   timeframe={tip.timeframe}
                   confidence={tip.confidence as "HIGH" | "MEDIUM" | "LOW"}
                 />
@@ -134,11 +134,11 @@ export default function TipsPage() {
               {optionTips.map((tip) => (
                 <TipCard
                   key={tip._id}
-                  stockName={tip.stock_name}
+                  stockName={tip.stockName}
                   action={tip.action as "BUY" | "SELL"}
-                  entryPrice={tip.entry_price}
-                  targetPrice={tip.target_price}
-                  stopLoss={tip.stop_loss}
+                  entryPrice={tip.entryPrice}
+                  targetPrice={tip.targetPrice}
+                  stopLoss={tip.stopLoss}
                   timeframe={tip.timeframe}
                   confidence={tip.confidence as "HIGH" | "MEDIUM" | "LOW"}
                 />
