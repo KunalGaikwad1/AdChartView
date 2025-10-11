@@ -25,7 +25,7 @@ const Hero = () => {
           {/* Tagline */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 text-accent mb-4">
             <TrendingUp className="h-4 w-4" />
-            <span className="text-sm font-medium">
+            <span className="text-sm font-medium text-white">
               Premium Stock Market Insights
             </span>
           </div>
@@ -33,7 +33,7 @@ const Hero = () => {
           {/* Main heading */}
           <h1 className="text-5xl md:text-7xl font-bold text-foreground leading-tight">
             AdChartView — Stock Tips Platform
-            <span className="block mt-2 bg-gradient-to-r from-accent to-success bg-clip-text text-transparent">
+            <span className="block mt-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent drop-shadow">
               Delivered Daily
             </span>
           </h1>
