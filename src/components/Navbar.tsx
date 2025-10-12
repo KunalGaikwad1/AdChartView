@@ -14,11 +14,10 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Navbar() {
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: roleLoading } = useRole(user);
+  const { isAdmin, loading: roleLoading } = useRole();
   const router = useRouter();
   const { toast } = useToast();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const prevHadUserRef = useRef<boolean>(false);
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
@@ -30,18 +29,23 @@ export default function Navbar() {
     router.push("/");
   };
 
-  // Show a one-time success toast when the user signs in
+  // Show a success toast only after a fresh sign-in (not on every reload)
   useEffect(() => {
-    if (!authLoading && user && !prevHadUserRef.current) {
-      toast({
-        title: "Signed in",
-        description: user.name ? `Welcome, ${user.name}!` : "Welcome!",
-        variant: "success",
-      });
-      prevHadUserRef.current = true;
-    }
-    if (!user && !authLoading) {
-      prevHadUserRef.current = false;
+    if (!authLoading && user) {
+      try {
+        if (typeof window !== "undefined") {
+          const key = "justSignedIn";
+          const flag = window.sessionStorage.getItem(key);
+          if (flag === "1") {
+            toast({
+              title: "Signed in",
+              description: user.name ? `Welcome, ${user.name}!` : "Welcome!",
+              variant: "success",
+            });
+            window.sessionStorage.removeItem(key);
+          }
+        }
+      } catch {}
     }
   }, [authLoading, user, toast]);
 
@@ -60,8 +64,8 @@ export default function Navbar() {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-primary to-accent p-2 rounded-lg shadow-sm">
-            <TrendingUp className="h-6 w-6 text-primary-foreground" />
+          <div className="p-3 rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/25">
+            <TrendingUp className="h-5 w-5 md:h-8 md:w-8 text-emerald-400" />
           </div>
           <div className="flex flex-col leading-tight">
             <span className="text-lg font-bold text-foreground">AdChartView</span>
@@ -80,7 +84,7 @@ export default function Navbar() {
               {isAdmin && (
                 <Link href="/admin/dashboard">
                   <Button variant="ghost">
-                    <Shield className="mr-2 h-4 w-4" />
+                    <Shield className="mr-2 h-4 w-4 text-primary" />
                     Admin
                   </Button>
                 </Link>
@@ -88,12 +92,12 @@ export default function Navbar() {
 
               <div className="flex items-center gap-2">
                 <Button variant="ghost" onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
+                  <LogOut className="mr-2 h-4 w-4 text-emerald-400" />
                   Logout
                 </Button>
                 <Button variant="outline" asChild>
                   <Link href="/login" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
+                    <User className="h-4 w-4 text-emerald-400" />
                     <span className="hidden sm:inline">{user?.name ?? 'Account'}</span>
                   </Link>
                 </Button>
@@ -113,7 +117,7 @@ export default function Navbar() {
             onClick={() => setMobileOpen((s) => !s)}
             className="p-2 rounded-md hover:bg-accent/50"
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileOpen ? <X className="h-5 w-5 text-primary" /> : <Menu className="h-5 w-5 text-primary" />}
           </button>
         </div>
 
@@ -133,14 +137,14 @@ export default function Navbar() {
                     {isAdmin && (
                       <Link href="/admin/dashboard">
                         <Button variant="ghost" className="w-full" onClick={() => setMobileOpen(false)}>
-                          <Shield className="mr-2 h-4 w-4" />
+                          <Shield className="mr-2 h-4 w-4 text-primary" />
                           Admin
                         </Button>
                       </Link>
                     )}
 
                     <Button variant="ghost" className="w-full" onClick={() => { setMobileOpen(false); handleLogout(); }}>
-                      <LogOut className="mr-2 h-4 w-4" />
+                      <LogOut className="mr-2 h-4 w-4 text-emerald-400" />
                       Logout
                     </Button>
                   </>

@@ -17,14 +17,14 @@ const Hero = () => {
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/90 to-background/95" />
+  <div className="absolute inset-0 bg-gradient-to-br from-background/55 via-background/40 to-background/55" />
       </div>
 
       <div className="container mx-auto px-4 py-20 relative z-10">
         <div className="max-w-4xl mx-auto text-center space-y-8">
           {/* Tagline */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 text-accent mb-4">
-            <TrendingUp className="h-4 w-4" />
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/25 text-primary mb-4">
+                <TrendingUp className="h-4 w-4 text-emerald-400" />
             <span className="text-sm font-medium text-white">
               Premium Stock Market Insights
             </span>
@@ -33,7 +33,7 @@ const Hero = () => {
           {/* Main heading */}
           <h1 className="text-5xl md:text-7xl font-bold text-foreground leading-tight">
             AdChartView — Stock Tips Platform
-            <span className="block mt-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent drop-shadow">
+            <span className="block mt-2 bg-gradient-to-r from-cyan-400 via-green-400 to-cyan-400 bg-[length:200%_200%] animate-gradient bg-clip-text text-transparent drop-shadow-lg">
               Delivered Daily
             </span>
           </h1>
@@ -57,17 +57,21 @@ const Hero = () => {
               </Button>
             </Link>
             <Link href="/tips">
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+              <Button
+                size="lg"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2 text-lg px-8 py-6"
+              >
                 View Sample Tips
+                <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
           </div>
 
           {/* Features */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 max-w-3xl mx-auto">
-            <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-card/50 backdrop-blur border border-border">
-              <div className="p-3 rounded-lg bg-accent/10">
-                <TrendingUp className="h-6 w-6 text-accent" />
+                <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-card/50 backdrop-blur border border-border">
+                  <div className="p-3 rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/25">
+                    <TrendingUp className="h-6 w-6 text-emerald-400" />
               </div>
               <h3 className="font-semibold text-foreground">Expert Analysis</h3>
               <p className="text-sm text-muted-foreground text-center">
@@ -75,9 +79,9 @@ const Hero = () => {
               </p>
             </div>
 
-            <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-card/50 backdrop-blur border border-border">
-              <div className="p-3 rounded-lg bg-accent/10">
-                <Zap className="h-6 w-6 text-accent" />
+                <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-card/50 backdrop-blur border border-border">
+                  <div className="p-3 rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/25">
+                    <Zap className="h-6 w-6 text-emerald-400" />
               </div>
               <h3 className="font-semibold text-foreground">
                 Real-time Updates
@@ -87,9 +91,9 @@ const Hero = () => {
               </p>
             </div>
 
-            <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-card/50 backdrop-blur border border-border">
-              <div className="p-3 rounded-lg bg-accent/10">
-                <Shield className="h-6 w-6 text-accent" />
+                <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-card/50 backdrop-blur border border-border">
+                  <div className="p-3 rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/25">
+                    <Shield className="h-6 w-6 text-emerald-400" />
               </div>
               <h3 className="font-semibold text-foreground">
                 Verified Track Record
