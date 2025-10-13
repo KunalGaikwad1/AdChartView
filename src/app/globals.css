@@ -134,6 +134,11 @@
   }
 }
 
+/* Prevent layout shift when vertical scrollbar appears/disappears */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* Toast animations */
 @keyframes toast-enter {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
@@ -166,3 +171,20 @@
   from { transform: scaleX(1); }
   to { transform: scaleX(0); }
 }
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  animation: gradient 6s ease infinite;
+}
+
