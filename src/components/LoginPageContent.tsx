@@ -76,10 +76,17 @@ export default function LoginPageContent() {
             type="button"
             variant="outline"
             className="w-full flex items-center justify-center gap-2 py-6 bg-white text-gray-800 border border-white/30 hover:bg-white/95 hover:border-white/50 shadow-sm"
-            onClick={() => signIn("google")}
+            onClick={() => {
+              try {
+                if (typeof window !== "undefined") {
+                  window.sessionStorage.setItem("justSignedIn", "1");
+                }
+              } catch {}
+              signIn("google");
+            }}
           >
             <FcGoogle className="h-6 w-6" />
-            <span className="text-sm text-white">Continue with Google</span>
+            <span className="text-sm text-white font-medium">Continue with Google</span>
           </Button>
         </CardContent>
       </Card>

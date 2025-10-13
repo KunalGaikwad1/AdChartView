@@ -37,7 +37,7 @@ export default function PricingPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
       </div>
     );
   }
@@ -67,7 +67,7 @@ const handlePayment = async (planId: string, amount: number, planName: string) =
     });
     const order = await orderRes.json();
 
-    const options = {
+  const options = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
       amount: order.amount,
       currency: "INR",
@@ -87,7 +87,8 @@ const handlePayment = async (planId: string, amount: number, planName: string) =
         });
         alert("Payment successful!");
       },
-      theme: { color: "#4CAF50" },
+      // Match site emerald theme
+      theme: { color: "#10B981" },
     };
 
     const paymentObject = new (window as any).Razorpay(options);
@@ -105,7 +106,7 @@ const handlePayment = async (planId: string, amount: number, planName: string) =
       <Navbar />
       <main className="container mx-auto px-4 py-24">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">
             Choose Your Plan
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -123,7 +124,7 @@ const handlePayment = async (planId: string, amount: number, planName: string) =
             {plans.map((plan) => (
               <Card
                 key={plan._id}
-                className="border border-accent/20 hover:border-accent/40 transition shadow-sm hover:shadow-md"
+                className="border border-emerald-400/25 hover:border-emerald-400/40 transition shadow-sm hover:shadow-md"
               >
                 <CardHeader className="text-center">
                   <CardTitle className="text-2xl font-bold text-foreground">
@@ -134,7 +135,7 @@ const handlePayment = async (planId: string, amount: number, planName: string) =
                   </p>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <div className="text-4xl font-bold text-accent mb-4">
+                  <div className="text-4xl font-bold text-emerald-400 mb-4">
                     ₹{plan.price}
                   </div>
                   <div className="text-sm text-muted-foreground mb-6">
@@ -144,25 +145,25 @@ const handlePayment = async (planId: string, amount: number, planName: string) =
                   {/* Features Section (Static Example) */}
                   <ul className="space-y-2 text-left mb-6">
                     <li className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-success" /> Daily
+                      <CheckCircle className="h-4 w-4 text-emerald-400" /> Daily
                       premium stock tips
                     </li>
                     <li className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-success" /> Real-time
+                      <CheckCircle className="h-4 w-4 text-emerald-400" /> Real-time
                       alerts and updates
                     </li>
                     <li className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-success" /> Expert
+                      <CheckCircle className="h-4 w-4 text-emerald-400" /> Expert
                       analysis and insights
                     </li>
                   </ul>
 
-                 <Button
-  className="w-full bg-accent hover:bg-accent/90"
-  onClick={() => handlePayment(plan._id, plan.price, plan.name)}
->
-  Subscribe Now
-</Button>
+                  <Button
+                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
+                    onClick={() => handlePayment(plan._id, plan.price, plan.name)}
+                  >
+                    Subscribe Now
+                  </Button>
 
                 </CardContent>
               </Card>
