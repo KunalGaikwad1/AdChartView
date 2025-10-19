@@ -93,13 +93,17 @@ export default function AdminDashboard() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.activeSubscribers}</div>
+              <div className="text-2xl font-bold">
+                {stats.activeSubscribers}
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Revenue
+              </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -125,7 +129,7 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
-                Recent Logins (24h)
+                Recent Logins
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
