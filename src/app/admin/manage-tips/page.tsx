@@ -1,4 +1,3 @@
-// app/admin/manage-tips/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -22,8 +21,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2 } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Pencil } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 interface Tip {
@@ -35,6 +43,7 @@ interface Tip {
   targetPrice: string;
   stopLoss: number;
   timeframe: string;
+  note: string;
   isDemo: boolean;
   createdAt: string;
 }
@@ -47,6 +56,9 @@ const ManageTipsPage = () => {
   const [tips, setTips] = useState<Tip[]>([]);
   const [loadingTips, setLoadingTips] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [editingTip, setEditingTip] = useState<Tip | null>(null);
+  const [updating, setUpdating] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     category: "equity",
@@ -60,18 +72,12 @@ const ManageTipsPage = () => {
     isDemo: false,
   });
 
-  // Redirect if not authenticated
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth");
-    }
+    if (status === "unauthenticated") router.push("/auth");
   }, [status, router]);
 
-  // Fetch tips when authenticated
   useEffect(() => {
-    if (status === "authenticated") {
-      fetchTips();
-    }
+    if (status === "authenticated") fetchTips();
   }, [status]);
 
   const fetchTips = async () => {
@@ -82,11 +88,7 @@ const ManageTipsPage = () => {
       const data: Tip[] = await res.json();
       setTips(data);
     } catch (error: any) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load tips",
-      });
+      toast({ title: "Error", description: error.message });
     } finally {
       setLoadingTips(false);
     }
@@ -95,7 +97,6 @@ const ManageTipsPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-
     try {
       const res = await fetch("/api/tips", {
         method: "POST",
@@ -112,7 +113,6 @@ const ManageTipsPage = () => {
           isDemo: formData.isDemo,
         }),
       });
-
       if (!res.ok) throw new Error("Failed to post tip");
 
       toast({ title: "Success", description: "Tip posted successfully!" });
@@ -127,13 +127,9 @@ const ManageTipsPage = () => {
         note: "",
         isDemo: false,
       });
-
       fetchTips();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to post tip",
-      });
+      toast({ title: "Error", description: error.message });
     } finally {
       setSubmitting(false);
     }
@@ -143,35 +139,68 @@ const ManageTipsPage = () => {
     try {
       const res = await fetch(`/api/tips?id=${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete tip");
-      toast({ title: "Success", description: "Tip deleted successfully" });
+      toast({ title: "Deleted", description: "Tip deleted successfully" });
       fetchTips();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete tip",
-      });
+      toast({ title: "Error", description: error.message });
     }
   };
 
-  if (status === "loading" || loadingTips) {
+  const handleUpdate = async () => {
+    if (!editingTip) return;
+    setUpdating(true);
+
+    try {
+      const res = await fetch("/api/tips", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingTip._id,
+          category: editingTip.category,
+          stock_name: editingTip.stockName,
+          action: editingTip.action,
+          entry_price: editingTip.entryPrice,
+          target_price: editingTip.targetPrice,
+          stop_loss: editingTip.stopLoss,
+          timeframe: editingTip.timeframe,
+          note: editingTip.note,
+          isDemo: editingTip.isDemo,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update tip");
+      const updatedTip = await res.json();
+
+      fetchTips();
+
+      toast({ title: "Updated", description: "Tip updated successfully!" });
+      setEditingTip(null);
+      setIsDialogOpen(false); // ✅ Close dialog
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  if (status === "loading" || loadingTips)
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
-  }
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 pt-24 pb-12">
         <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          Admin Panel
+          Manage Tips
         </h1>
 
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Post New Tip */}
-          <Card>
+          <Card className="border-primary/10 shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <PlusCircle className="h-5 w-5" />
@@ -183,9 +212,8 @@ const ManageTipsPage = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Category */}
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label>Category</Label>
                   <Select
                     value={formData.category}
                     onValueChange={(value) =>
@@ -193,7 +221,7 @@ const ManageTipsPage = () => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Select Category" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="equity">Equity</SelectItem>
@@ -203,12 +231,10 @@ const ManageTipsPage = () => {
                   </Select>
                 </div>
 
-                {/* Stock & Action */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="stockName">Stock Name</Label>
+                    <Label>Stock Name</Label>
                     <Input
-                      id="stockName"
                       value={formData.stockName}
                       onChange={(e) =>
                         setFormData({ ...formData, stockName: e.target.value })
@@ -218,7 +244,7 @@ const ManageTipsPage = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="action">Action</Label>
+                    <Label>Action</Label>
                     <Select
                       value={formData.action}
                       onValueChange={(value) =>
@@ -226,7 +252,7 @@ const ManageTipsPage = () => {
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select" />
+                        <SelectValue placeholder="Select Action" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="BUY">BUY</SelectItem>
@@ -237,12 +263,10 @@ const ManageTipsPage = () => {
                   </div>
                 </div>
 
-                {/* Prices */}
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="entryPrice">Entry Price</Label>
+                    <Label>Entry Price</Label>
                     <Input
-                      id="entryPrice"
                       type="number"
                       step="0.01"
                       value={formData.entryPrice}
@@ -254,9 +278,8 @@ const ManageTipsPage = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="targetPrice">targetPrice</Label>
+                    <Label>Target Price</Label>
                     <Input
-                      id="targetPrice"
                       value={formData.targetPrice}
                       onChange={(e) =>
                         setFormData({
@@ -264,14 +287,13 @@ const ManageTipsPage = () => {
                           targetPrice: e.target.value,
                         })
                       }
-                      placeholder="100/120/130"
+                      placeholder="160/170"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="stopLoss">Stop Loss</Label>
+                    <Label>Stop Loss</Label>
                     <Input
-                      id="stopLoss"
                       type="number"
                       step="0.01"
                       value={formData.stopLoss}
@@ -284,12 +306,10 @@ const ManageTipsPage = () => {
                   </div>
                 </div>
 
-                {/* Timeframe & Confidence */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="timeframe">Timeframe</Label>
+                    <Label>Timeframe</Label>
                     <Input
-                      id="timeframe"
                       value={formData.timeframe}
                       onChange={(e) =>
                         setFormData({ ...formData, timeframe: e.target.value })
@@ -299,31 +319,25 @@ const ManageTipsPage = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="note">Note</Label>
+                    <Label>Note</Label>
                     <Input
-                      id="note"
                       value={formData.note}
                       onChange={(e) =>
                         setFormData({ ...formData, note: e.target.value })
                       }
-                      placeholder="Risky trade, monitor closely"
-                      required
+                      placeholder="Example: Watch for breakout"
                     />
                   </div>
                 </div>
 
-                {/* Demo */}
                 <div className="flex items-center space-x-2">
                   <Checkbox
-                    id="isDemo"
                     checked={formData.isDemo}
                     onCheckedChange={(checked) =>
                       setFormData({ ...formData, isDemo: checked as boolean })
                     }
                   />
-                  <Label htmlFor="isDemo" className="cursor-pointer">
-                    Make this tip available to free users (Demo Tip)
-                  </Label>
+                  <Label>Make this a demo tip for free users</Label>
                 </div>
 
                 <Button type="submit" className="w-full" disabled={submitting}>
@@ -344,10 +358,12 @@ const ManageTipsPage = () => {
           </Card>
 
           {/* Recent Tips */}
-          <Card>
+          <Card className="border-primary/10 shadow-md">
             <CardHeader>
               <CardTitle>Recent Tips</CardTitle>
-              <CardDescription>Manage your posted tips</CardDescription>
+              <CardDescription>
+                Manage and update your posted tips
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {tips.length === 0 ? (
@@ -359,39 +375,149 @@ const ManageTipsPage = () => {
                   {tips.map((tip) => (
                     <div
                       key={tip._id}
-                      className="flex items-start justify-between p-4 border rounded-lg"
+                      className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/40 transition-all"
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-semibold">
                             {tip.category.toUpperCase()}
                           </span>
-                          <span className="font-bold">{tip.stockName}</span>
+                          <span className="font-bold text-sm">
+                            {tip.stockName}
+                          </span>
                           <span
                             className={`px-2 py-1 rounded text-xs font-semibold ${
                               tip.action === "BUY"
-                                ? "bg-green-500/10 text-green-500"
-                                : "bg-red-500/10 text-red-500"
+                                ? "bg-green-500/10 text-green-600"
+                                : tip.action === "SELL"
+                                ? "bg-red-500/10 text-red-600"
+                                : "bg-blue-500/10 text-blue-600"
                             }`}
                           >
                             {tip.action}
                           </span>
                         </div>
-                        <div className="text-sm text-muted-foreground grid grid-cols-2 gap-1">
-                          <span>Entry: ₹{tip.entryPrice}</span>
-                          <span>Target: ₹{tip.targetPrice}</span>
-                          <span>Stop Loss: ₹{tip.stopLoss}</span>
-                          <span>Note: {tip.note}</span>
-                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Entry ₹{tip.entryPrice} — Target ₹{tip.targetPrice} —
+                          SL ₹{tip.stopLoss}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {tip.note}
+                        </p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(tip._id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+
+                      <div className="flex gap-2">
+                        {/* Edit Dialog */}
+                        <Dialog
+                          open={isDialogOpen}
+                          onOpenChange={setIsDialogOpen}
+                        >
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingTip(tip);
+                                setIsDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4 text-blue-600" />
+                            </Button>
+                          </DialogTrigger>
+
+                          <DialogContent className="max-w-lg">
+                            <DialogHeader>
+                              <DialogTitle>Edit Tip</DialogTitle>
+                              <DialogDescription>
+                                Modify the tip details and save changes
+                              </DialogDescription>
+                            </DialogHeader>
+
+                            {editingTip && (
+                              <div className="space-y-3 mt-3">
+                                <Label>Stock Name</Label>
+                                <Input
+                                  value={editingTip.stockName}
+                                  onChange={(e) =>
+                                    setEditingTip({
+                                      ...editingTip,
+                                      stockName: e.target.value,
+                                    })
+                                  }
+                                />
+
+                                <Label>Action</Label>
+                                <Select
+                                  value={editingTip.action}
+                                  onValueChange={(value) =>
+                                    setEditingTip({
+                                      ...editingTip,
+                                      action: value,
+                                    })
+                                  }
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="BUY">BUY</SelectItem>
+                                    <SelectItem value="SELL">SELL</SelectItem>
+                                    <SelectItem value="WATCH">WATCH</SelectItem>
+                                  </SelectContent>
+                                </Select>
+
+                                <Label>Target Price</Label>
+                                <Input
+                                  value={editingTip.targetPrice}
+                                  onChange={(e) =>
+                                    setEditingTip({
+                                      ...editingTip,
+                                      targetPrice: e.target.value,
+                                    })
+                                  }
+                                />
+
+                                <Label>Note</Label>
+                                <Input
+                                  value={editingTip.note}
+                                  onChange={(e) =>
+                                    setEditingTip({
+                                      ...editingTip,
+                                      note: e.target.value,
+                                    })
+                                  }
+                                />
+
+                                <DialogFooter>
+                                  <Button
+                                    onClick={handleUpdate}
+                                    disabled={updating}
+                                  >
+                                    {updating ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Saving...
+                                      </>
+                                    ) : (
+                                      "Save Changes"
+                                    )}
+                                  </Button>
+                                </DialogFooter>
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+
+                        {/* Delete */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(tip._id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
