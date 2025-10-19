@@ -25,9 +25,7 @@ export async function GET() {
         { $group: { _id: null, total: { $sum: "$amount" } } },
       ]),
       Tip.find(),
-      LoginHistory.countDocuments({
-        loginAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-      }),
+      LoginHistory.countDocuments(),
     ]);
 
   const totalRevenue =

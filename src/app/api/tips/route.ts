@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       target_price,
       stop_loss,
       timeframe,
-      confidence,
+      note,
       isDemo = false,
     } = body;
 
@@ -75,8 +75,8 @@ export async function POST(req: NextRequest) {
       targetPrice: target_price,
       stopLoss: stop_loss,
       timeframe,
-      confidence,
       isDemo,
+      note,
       createdBy: session.user.id,
     });
 

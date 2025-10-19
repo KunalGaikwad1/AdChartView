@@ -16,10 +16,7 @@ export async function GET(req: NextRequest) {
 
   try {
     // 2️⃣ Fetch last 100 login records
-    const logins = await LoginHistory.find({})
-      .sort({ loginAt: -1 })
-      .limit(100)
-      .lean();
+    const logins = await LoginHistory.find({}).sort({ loginAt: -1 }).lean();
 
     // 3️⃣ Populate user info
     const loginsWithUsers = await Promise.all(
