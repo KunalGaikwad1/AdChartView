@@ -32,10 +32,9 @@ interface Tip {
   stockName: string;
   action: string;
   entryPrice: number;
-  targetPrice: number;
+  targetPrice: string;
   stopLoss: number;
   timeframe: string;
-  confidence: string;
   isDemo: boolean;
   createdAt: string;
 }
@@ -57,7 +56,7 @@ const ManageTipsPage = () => {
     targetPrice: "",
     stopLoss: "",
     timeframe: "",
-    confidence: "",
+    note: "",
     isDemo: false,
   });
 
@@ -106,10 +105,10 @@ const ManageTipsPage = () => {
           stock_name: formData.stockName,
           action: formData.action,
           entry_price: parseFloat(formData.entryPrice),
-          target_price: parseFloat(formData.targetPrice),
+          target_price: formData.targetPrice,
           stop_loss: parseFloat(formData.stopLoss),
           timeframe: formData.timeframe,
-          confidence: formData.confidence,
+          note: formData.note,
           isDemo: formData.isDemo,
         }),
       });
@@ -125,7 +124,7 @@ const ManageTipsPage = () => {
         targetPrice: "",
         stopLoss: "",
         timeframe: "",
-        confidence: "",
+        note: "",
         isDemo: false,
       });
 
@@ -255,11 +254,9 @@ const ManageTipsPage = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="targetPrice">Target</Label>
+                    <Label htmlFor="targetPrice">targetPrice</Label>
                     <Input
                       id="targetPrice"
-                      type="number"
-                      step="0.01"
                       value={formData.targetPrice}
                       onChange={(e) =>
                         setFormData({
@@ -267,7 +264,7 @@ const ManageTipsPage = () => {
                           targetPrice: e.target.value,
                         })
                       }
-                      placeholder="165.00"
+                      placeholder="100/120/130"
                       required
                     />
                   </div>
@@ -302,22 +299,16 @@ const ManageTipsPage = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confidence">Confidence</Label>
-                    <Select
-                      value={formData.confidence}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, confidence: value })
+                    <Label htmlFor="note">Note</Label>
+                    <Input
+                      id="note"
+                      value={formData.note}
+                      onChange={(e) =>
+                        setFormData({ ...formData, note: e.target.value })
                       }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      placeholder="Risky trade, monitor closely"
+                      required
+                    />
                   </div>
                 </div>
 
@@ -390,7 +381,7 @@ const ManageTipsPage = () => {
                           <span>Entry: ₹{tip.entryPrice}</span>
                           <span>Target: ₹{tip.targetPrice}</span>
                           <span>Stop Loss: ₹{tip.stopLoss}</span>
-                          <span>Confidence: {tip.confidence}</span>
+                          <span>Note: {tip.note}</span>
                         </div>
                       </div>
                       <Button
