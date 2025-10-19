@@ -71,7 +71,7 @@ export default function LoginHistoryPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Logins (Last 100)</CardTitle>
+            <CardTitle>Recent Logins</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>

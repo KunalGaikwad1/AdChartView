@@ -11,6 +11,7 @@ interface TipCardProps {
   stopLoss: string | number;
   timeframe: string;
   confidence: "HIGH" | "MEDIUM" | "LOW";
+  createdAt: string; // Add this
   locked?: boolean;
 }
 
@@ -21,9 +22,11 @@ const TipCard = ({
   targetPrice,
   stopLoss,
   timeframe,
-  confidence,
+  createdAt,
   locked = false,
 }: TipCardProps) => {
+  const formattedDate = new Date(createdAt).toLocaleString(); // format timestamp
+
   return (
     <Card
       className={`relative p-6 hover:shadow-lg transition-all ${
@@ -47,13 +50,16 @@ const TipCard = ({
               )}
               {action}
             </Badge>
-            <Badge variant="outline">{confidence}</Badge>
           </div>
         </div>
         <div className="text-right">
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span className="text-sm">{timeframe}</span>
+          <div className="flex flex-col items-end gap-1 text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              <span className="text-sm">{timeframe}</span>
+            </div>
+            <span className="text-xs">{formattedDate}</span>{" "}
+            {/* show createdAt */}
           </div>
         </div>
       </div>

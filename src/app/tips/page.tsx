@@ -13,10 +13,11 @@ interface Tip {
   stockName: string;
   action: "BUY" | "SELL" | string;
   entryPrice: number;
-  targetPrice: number;
+  targetPrice: string;
   stopLoss: number;
   timeframe: string;
   confidence: "HIGH" | "MEDIUM" | "LOW" | string;
+  createdAt: string;
   isDemo: boolean;
 }
 
@@ -80,7 +81,10 @@ export default function TipsPage() {
                 access to all premium tips!
               </p>
               <Link href="/pricing">
-                <Button size="lg" className="bg-accent hover:bg-accent/90 w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  className="bg-accent hover:bg-accent/90 w-full sm:w-auto"
+                >
                   View Pricing Plans
                 </Button>
               </Link>
@@ -89,18 +93,30 @@ export default function TipsPage() {
 
           <Tabs defaultValue="equity" className="w-full">
             <TabsList className="mb-6 md:mb-8 h-auto bg-muted overflow-x-auto rounded-lg p-1 md:p-2 lg:p-2.5 flex md:grid md:grid-cols-3 gap-2 md:gap-3 lg:gap-4 md:max-w-3xl md:mx-auto">
-              <TabsTrigger value="equity" className="text-sm md:text-base py-2 md:py-3 lg:py-3.5 whitespace-nowrap shrink-0 w-auto md:w-full justify-center">
+              <TabsTrigger
+                value="equity"
+                className="text-sm md:text-base py-2 md:py-3 lg:py-3.5 whitespace-nowrap shrink-0 w-auto md:w-full justify-center"
+              >
                 Equity Calls ({equityTips.length})
               </TabsTrigger>
-              <TabsTrigger value="futures" className="text-sm md:text-base py-2 md:py-3 lg:py-3.5 whitespace-nowrap shrink-0 w-auto md:w-full justify-center">
+              <TabsTrigger
+                value="futures"
+                className="text-sm md:text-base py-2 md:py-3 lg:py-3.5 whitespace-nowrap shrink-0 w-auto md:w-full justify-center"
+              >
                 Future Calls ({futureTips.length})
               </TabsTrigger>
-              <TabsTrigger value="options" className="text-sm md:text-base py-2 md:py-3 lg:py-3.5 whitespace-nowrap shrink-0 w-auto md:w-full justify-center">
+              <TabsTrigger
+                value="options"
+                className="text-sm md:text-base py-2 md:py-3 lg:py-3.5 whitespace-nowrap shrink-0 w-auto md:w-full justify-center"
+              >
                 Options Calls ({optionTips.length})
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="equity" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[40vh]">
+            <TabsContent
+              value="equity"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[40vh]"
+            >
               {equityTips.map((tip) => (
                 <TipCard
                   key={tip._id}
@@ -110,12 +126,16 @@ export default function TipsPage() {
                   targetPrice={tip.targetPrice}
                   stopLoss={tip.stopLoss}
                   timeframe={tip.timeframe}
+                  createdAt={tip.createdAt}
                   confidence={tip.confidence as "HIGH" | "MEDIUM" | "LOW"}
                 />
               ))}
             </TabsContent>
 
-            <TabsContent value="futures" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[40vh]">
+            <TabsContent
+              value="futures"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[40vh]"
+            >
               {futureTips.map((tip) => (
                 <TipCard
                   key={tip._id}
@@ -125,12 +145,16 @@ export default function TipsPage() {
                   targetPrice={tip.targetPrice}
                   stopLoss={tip.stopLoss}
                   timeframe={tip.timeframe}
+                  createdAt={tip.createdAt}
                   confidence={tip.confidence as "HIGH" | "MEDIUM" | "LOW"}
                 />
               ))}
             </TabsContent>
 
-            <TabsContent value="options" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[40vh]">
+            <TabsContent
+              value="options"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[40vh]"
+            >
               {optionTips.map((tip) => (
                 <TipCard
                   key={tip._id}
@@ -140,6 +164,7 @@ export default function TipsPage() {
                   targetPrice={tip.targetPrice}
                   stopLoss={tip.stopLoss}
                   timeframe={tip.timeframe}
+                  createdAt={tip.createdAt}
                   confidence={tip.confidence as "HIGH" | "MEDIUM" | "LOW"}
                 />
               ))}
