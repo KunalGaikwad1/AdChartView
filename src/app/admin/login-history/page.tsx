@@ -21,6 +21,7 @@ interface LoginRecord {
   user: {
     email: string;
     fullName?: string | null;
+    location?: string | null;
   };
   loginAt: string;
   ipAddress?: string | null;
@@ -80,7 +81,7 @@ export default function LoginHistoryPage() {
                   <TableHead>Time</TableHead>
                   <TableHead>User</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>IP Address</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -106,7 +107,7 @@ export default function LoginHistoryPage() {
                       <TableCell>{login.user.fullName || "N/A"}</TableCell>
                       <TableCell>{login.user.email}</TableCell>
                       <TableCell className="font-mono text-sm">
-                        {login.ipAddress || "N/A"}
+                        {login.user.location || "N/A"}
                       </TableCell>
                       <TableCell>
                         <Badge

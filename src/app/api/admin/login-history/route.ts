@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
           user: {
             email: user?.email || "Unknown",
             fullName: user?.name || null,
+            location: user?.location || null,
           },
         };
       })
