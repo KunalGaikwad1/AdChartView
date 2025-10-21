@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   // 2️⃣ If admin → return all tips
   if (userRole === "admin") {
-    const allTips = await Tip.find().sort({ createdAt: -1 });
+    const allTips = await Tip.find().sort({ updatedAt: -1 });
     return NextResponse.json(allTips);
   }
 
@@ -126,6 +126,73 @@ export async function DELETE(req: NextRequest) {
     console.error("Error deleting tip:", error);
     return NextResponse.json(
       { error: "Error deleting tip", details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  await connectDB();
+
+  // 1️⃣ Check authentication
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  // 2️⃣ Only admin can update tips
+  if (session.user.role !== "admin") {
+    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  }
+
+  try {
+    const body = await req.json();
+    const {
+      id,
+      category,
+      stock_name,
+      action,
+      entry_price,
+      target_price,
+      stop_loss,
+      timeframe,
+      note,
+      isDemo,
+    } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Tip ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // 3️⃣ Update the tip
+    const updatedTip = await Tip.findByIdAndUpdate(
+      id,
+      {
+        category,
+        stockName: stock_name,
+        action,
+        entryPrice: entry_price,
+        targetPrice: target_price,
+        stopLoss: stop_loss,
+        timeframe,
+        isDemo,
+        note,
+      },
+      { new: true } // return the updated document
+    );
+
+    if (!updatedTip) {
+      return NextResponse.json({ error: "Tip not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedTip, { status: 200 });
+  } catch (error: any) {
+    console.error("Error updating tip:", error);
+    return NextResponse.json(
+      { error: "Error updating tip", details: error.message },
       { status: 500 }
     );
   }
