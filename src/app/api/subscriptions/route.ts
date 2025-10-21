@@ -5,6 +5,7 @@ import Subscription from "@/models/Subscription";
 export async function GET() {
   await connectDB();
   const plans = await Subscription.find().sort({ createdAt: -1 });
+  await Subscription.collection.dropIndexes();
   return NextResponse.json(plans);
 }
 
