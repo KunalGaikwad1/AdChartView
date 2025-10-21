@@ -6,6 +6,10 @@ const userSchema = new Schema(
     email: { type: String, unique: true },
     image: String,
     role: { type: String, default: "user" }, // user or admin
+    location: String,
+    age: Number,
+    phone: String,
+    profileCompleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
