@@ -1,23 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TrendingUp, LogOut, Shield, Menu, X, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { useToast } from "@/hooks/use-toast";
+import ProfileStatusModal from "./ProfileStatusModal";
 
 export default function Navbar() {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: roleLoading } = useRole();
   const router = useRouter();
   const { toast } = useToast();
+
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileCompleted, setProfileCompleted] = useState(true);
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
@@ -29,7 +32,6 @@ export default function Navbar() {
     router.push("/");
   };
 
-  // Show a success toast only after a fresh sign-in (not on every reload)
   useEffect(() => {
     if (!authLoading && user) {
       try {
@@ -48,6 +50,32 @@ export default function Navbar() {
       } catch {}
     }
   }, [authLoading, user, toast]);
+
+  // ✅ Check profile completion
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user?.email) {
+        try {
+          const res = await fetch("/api/user/check");
+          const data = await res.json();
+          setProfileCompleted(data.profileCompleted);
+        } catch (err) {
+          console.error("Error checking profile:", err);
+        }
+      }
+    };
+
+    fetchProfile();
+
+    const handleProfileUpdate = () => {
+      fetchProfile(); // refetch immediately
+    };
+
+    window.addEventListener("profileUpdated", handleProfileUpdate);
+    return () => {
+      window.removeEventListener("profileUpdated", handleProfileUpdate);
+    };
+  }, [user]);
 
   if (authLoading || roleLoading) {
     return (
@@ -68,12 +96,16 @@ export default function Navbar() {
             <TrendingUp className="h-5 w-5 md:h-8 md:w-8 text-emerald-400" />
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-lg font-bold text-foreground">AdChartView</span>
-            <small className="text-xs text-muted-foreground -mt-1">Actionable stock ideas</small>
+            <span className="text-lg font-bold text-foreground">
+              AdChartView
+            </span>
+            <small className="text-xs text-muted-foreground -mt-1">
+              Actionable stock ideas
+            </small>
           </div>
         </Link>
 
-        {/* Desktop nav */}
+        {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-4">
           <Link href="/tips">
             <Button variant="ghost">View Tips</Button>
@@ -95,11 +127,17 @@ export default function Navbar() {
                   <LogOut className="mr-2 h-4 w-4 text-emerald-400" />
                   Logout
                 </Button>
-                <Button variant="outline" asChild>
-                  <Link href="/login" className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-emerald-400" />
-                    <span className="hidden sm:inline">{user?.name ?? 'Account'}</span>
-                  </Link>
+
+                {/* ✅ Profile button */}
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2"
+                  onClick={() => setShowProfileModal(true)}
+                >
+                  <User className="h-4 w-4 text-emerald-400" />
+                  <span className="hidden sm:inline">
+                    {user?.name ?? "Account"}
+                  </span>
                 </Button>
               </div>
             </>
@@ -110,24 +148,31 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile controls */}
+        {/* Mobile */}
         <div className="md:hidden flex items-center gap-2">
           <button
             aria-label="Toggle menu"
             onClick={() => setMobileOpen((s) => !s)}
             className="p-2 rounded-md hover:bg-accent/50"
           >
-            {mobileOpen ? <X className="h-5 w-5 text-primary" /> : <Menu className="h-5 w-5 text-primary" />}
+            {mobileOpen ? (
+              <X className="h-5 w-5 text-primary" />
+            ) : (
+              <Menu className="h-5 w-5 text-primary" />
+            )}
           </button>
         </div>
 
-        {/* Mobile menu panel */}
         {mobileOpen && (
           <div className="absolute left-4 right-4 top-16 z-50 md:hidden">
             <Card className="p-3">
               <div className="flex flex-col gap-2">
                 <Link href="/tips">
-                  <Button variant="ghost" className="w-full" onClick={() => setMobileOpen(false)}>
+                  <Button
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => setMobileOpen(false)}
+                  >
                     View Tips
                   </Button>
                 </Link>
@@ -136,21 +181,36 @@ export default function Navbar() {
                   <>
                     {isAdmin && (
                       <Link href="/admin/dashboard">
-                        <Button variant="ghost" className="w-full" onClick={() => setMobileOpen(false)}>
+                        <Button
+                          variant="ghost"
+                          className="w-full"
+                          onClick={() => setMobileOpen(false)}
+                        >
                           <Shield className="mr-2 h-4 w-4 text-primary" />
                           Admin
                         </Button>
                       </Link>
                     )}
 
-                    <Button variant="ghost" className="w-full" onClick={() => { setMobileOpen(false); handleLogout(); }}>
+                    <Button
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        handleLogout();
+                      }}
+                    >
                       <LogOut className="mr-2 h-4 w-4 text-emerald-400" />
                       Logout
                     </Button>
                   </>
                 ) : (
                   <Link href="/login">
-                    <Button variant="default" className="w-full" onClick={() => setMobileOpen(false)}>
+                    <Button
+                      variant="default"
+                      className="w-full"
+                      onClick={() => setMobileOpen(false)}
+                    >
                       Sign In
                     </Button>
                   </Link>
@@ -160,6 +220,13 @@ export default function Navbar() {
           </div>
         )}
       </div>
+
+      {/* ✅ Profile Modal */}
+      <ProfileStatusModal
+        open={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        completed={profileCompleted}
+      />
     </nav>
   );
 }
