@@ -16,8 +16,8 @@ interface Tip {
   targetPrice: string;
   stopLoss: number;
   timeframe: string;
-  confidence: "HIGH" | "MEDIUM" | "LOW" | string;
   createdAt: string;
+  note: string;
   isDemo: boolean;
 }
 
@@ -118,7 +118,7 @@ export default function TipsPage() {
                   stopLoss={tip.stopLoss}
                   timeframe={tip.timeframe}
                   createdAt={tip.createdAt}
-                  confidence={tip.confidence as "HIGH" | "MEDIUM" | "LOW"}
+                  note={tip.note}
                 />
               ))}
             </TabsContent>
@@ -134,7 +134,7 @@ export default function TipsPage() {
                   stopLoss={tip.stopLoss}
                   timeframe={tip.timeframe}
                   createdAt={tip.createdAt}
-                  confidence={tip.confidence as "HIGH" | "MEDIUM" | "LOW"}
+                  note={tip.note}
                 />
               ))}
             </TabsContent>
@@ -150,7 +150,7 @@ export default function TipsPage() {
                   stopLoss={tip.stopLoss}
                   timeframe={tip.timeframe}
                   createdAt={tip.createdAt}
-                  confidence={tip.confidence as "HIGH" | "MEDIUM" | "LOW"}
+                  note={tip.note}
                 />
               ))}
             </TabsContent>
