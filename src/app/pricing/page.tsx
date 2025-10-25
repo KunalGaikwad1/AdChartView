@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 interface Plan {
   _id: string;
@@ -17,6 +18,7 @@ interface Plan {
 export default function PricingPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+   const { data: session } = useSession(); 
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -83,6 +85,8 @@ const handlePayment = async (planId: string, amount: number, planName: string) =
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
             planId,
+            userId: (session?.user as { id?: string })?.id,
+            amount,    
           }),
         });
         alert("Payment successful!");

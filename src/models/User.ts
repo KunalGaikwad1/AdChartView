@@ -10,6 +10,13 @@ const userSchema = new Schema(
     age: Number,
     phone: String,
     profileCompleted: { type: Boolean, default: false },
+    isSubscribed: { type: Boolean, default: false },
+    planType: {
+      type: String,
+      enum: ["equity", "futures", "options", null],
+      default: null,
+    },
+    planExpiry: { type: Date, default: null },
   },
   { timestamps: true }
 );

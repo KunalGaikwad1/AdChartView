@@ -3,36 +3,35 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/nextauth";
 import { connectDB } from "@/lib/mongodb";
 import Tip from "@/models/Tip";
-import Subscription from "@/models/Subscription";
+import User from "@/models/User";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   await connectDB();
 
-  // 1️⃣ If no session → unauthorized
   if (!session || !session.user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const userRole = session.user.role;
+  const user = await User.findOne({ email: session.user.email });
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
 
-  // 2️⃣ If admin → return all tips
-  if (userRole === "admin") {
+  // 1️⃣ If admin → return all tips
+  if (user.role === "admin") {
     const allTips = await Tip.find().sort({ createdAt: -1 });
     return NextResponse.json(allTips);
   }
 
-  // 3️⃣ For user → check active subscription
-  const sub = await Subscription.findOne({
-    userId: session.user.id,
-    isActive: true,
-  });
-
-  // 4️⃣ Return tips based on subscription
-  if (sub) {
-    const allTips = await Tip.find().sort({ createdAt: -1 });
-    return NextResponse.json(allTips);
+  // 2️⃣ For normal user → check subscription
+  const now = new Date();
+  if (user.isSubscribed && user.planExpiry && new Date(user.planExpiry) > now) {
+    // Active plan → return tips of their plan type
+    const allowedTips = await Tip.find({ category: user.planType }).sort({ createdAt: -1 });
+    return NextResponse.json(allowedTips);
   } else {
+    // No or expired plan → show only demo tips
     const demoTips = await Tip.find({ isDemo: true }).sort({ createdAt: -1 });
     return NextResponse.json(demoTips);
   }
@@ -42,12 +41,10 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   await connectDB();
 
-  // 1️⃣ If not logged in
   if (!session || !session.user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // 2️⃣ Only admin can post tips
   if (session.user.role !== "admin") {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
@@ -63,10 +60,10 @@ export async function POST(req: NextRequest) {
       stop_loss,
       timeframe,
       note,
+      confidence,
       isDemo = false,
     } = body;
 
-    // 3️⃣ Create new tip
     const newTip = await Tip.create({
       category,
       stockName: stock_name,
@@ -75,6 +72,7 @@ export async function POST(req: NextRequest) {
       targetPrice: target_price,
       stopLoss: stop_loss,
       timeframe,
+      confidence,
       isDemo,
       note,
       createdBy: session.user.id,
@@ -94,12 +92,10 @@ export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
   await connectDB();
 
-  // 1️⃣ Check authentication
   if (!session || !session.user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // 2️⃣ Only admin can delete tips
   if (session.user.role !== "admin") {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
@@ -109,10 +105,7 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Tip ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Tip ID is required" }, { status: 400 });
     }
 
     const deletedTip = await Tip.findByIdAndDelete(id);
