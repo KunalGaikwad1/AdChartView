@@ -6,10 +6,26 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Trash2, Loader2 } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  PlusCircle,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Plan {
   _id: string;
@@ -17,6 +33,7 @@ interface Plan {
   price: number;
   duration: string;
   description: string;
+  planType: string;
 }
 
 export default function ManagePlans() {
@@ -26,13 +43,15 @@ export default function ManagePlans() {
 
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     price: "",
     duration: "",
     description: "",
+    planType: "equity",
   });
-  const [saving, setSaving] = useState(false);
 
   // Protect route
   useEffect(() => {
@@ -69,11 +88,19 @@ export default function ManagePlans() {
           price: parseFloat(form.price),
           duration: form.duration,
           description: form.description,
+          planType: form.planType,
         }),
       });
       if (!res.ok) throw new Error("Failed to add plan");
+
       toast({ title: "Plan added successfully!" });
-      setForm({ name: "", price: "", duration: "", description: "" });
+      setForm({
+        name: "",
+        price: "",
+        duration: "",
+        description: "",
+        planType: "equity",
+      });
       fetchPlans();
     } catch (err: any) {
       toast({ title: "Error", description: err.message });
@@ -111,6 +138,7 @@ export default function ManagePlans() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Plan Name */}
                 <div className="space-y-2">
                   <Label>Plan Name</Label>
                   <Input
@@ -121,17 +149,41 @@ export default function ManagePlans() {
                   />
                 </div>
 
+                {/* Plan Type */}
+                <div className="space-y-2">
+                  <Label>Plan Type</Label>
+                  <Select
+                    value={form.planType}
+                    onValueChange={(value) =>
+                      setForm({ ...form, planType: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select plan type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="equity">Equity</SelectItem>
+                      <SelectItem value="futures">Futures</SelectItem>
+                      <SelectItem value="options">Options</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Price */}
                 <div className="space-y-2">
                   <Label>Price (₹)</Label>
                   <Input
                     type="number"
                     value={form.price}
-                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, price: e.target.value })
+                    }
                     placeholder="999"
                     required
                   />
                 </div>
 
+                {/* Duration */}
                 <div className="space-y-2">
                   <Label>Duration</Label>
                   <Input
@@ -144,6 +196,7 @@ export default function ManagePlans() {
                   />
                 </div>
 
+                {/* Description */}
                 <div className="space-y-2">
                   <Label>Description</Label>
                   <Input
@@ -155,10 +208,12 @@ export default function ManagePlans() {
                   />
                 </div>
 
+                {/* Submit */}
                 <Button type="submit" disabled={saving} className="w-full">
                   {saving ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
                     </>
                   ) : (
                     <>
@@ -188,7 +243,12 @@ export default function ManagePlans() {
                       className="p-4 border rounded-lg flex justify-between items-start"
                     >
                       <div>
-                        <h3 className="font-semibold">{plan.name}</h3>
+                        <h3 className="font-semibold">
+                          {plan.name}{" "}
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded ml-2">
+                            {plan.planType}
+                          </span>
+                        </h3>
                         <p className="text-sm text-muted-foreground">
                           ₹{plan.price} • {plan.duration}
                         </p>
