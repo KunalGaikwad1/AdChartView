@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/nextauth";
 import { connectDB } from "@/lib/mongodb";
 import Tip from "@/models/Tip";
 import User from "@/models/User";
+import Notification from "@/models/Notification";
+import { getIO } from "@/lib/socketServer";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -18,33 +20,36 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  // 1️⃣ If admin → return all tips
+  // 🧑‍💼 Admin → all tips
   if (user.role === "admin") {
     const allTips = await Tip.find().sort({ createdAt: -1 });
     return NextResponse.json(allTips);
   }
 
-  // 2️⃣ For normal user → check subscription
+  // 👤 Normal user → check active subscription
   const now = new Date();
   if (user.isSubscribed && user.planExpiry && new Date(user.planExpiry) > now) {
-    // Active plan → return tips of their plan type
-    const allowedTips = await Tip.find({ category: user.planType }).sort({ createdAt: -1 });
+    const allowedTips = await Tip.find({ category: user.planType }).sort({
+      createdAt: -1,
+    });
     return NextResponse.json(allowedTips);
   } else {
-    // No or expired plan → show only demo tips
     const demoTips = await Tip.find({ isDemo: true }).sort({ createdAt: -1 });
     return NextResponse.json(demoTips);
   }
 }
 
+// 🆕 POST → Add new tip + notify users
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   await connectDB();
 
+  // 1️⃣ Authentication check
   if (!session || !session.user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
+  // 2️⃣ Only admin can post tips
   if (session.user.role !== "admin") {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
@@ -64,6 +69,7 @@ export async function POST(req: NextRequest) {
       isDemo = false,
     } = body;
 
+    // ✅ 3️⃣ Create tip in DB
     const newTip = await Tip.create({
       category,
       stockName: stock_name,
@@ -78,6 +84,39 @@ export async function POST(req: NextRequest) {
       createdBy: session.user.id,
     });
 
+    // ✅ 4️⃣ Find subscribed users for this category
+    const subscribedUsers = await User.find({
+      isSubscribed: true,
+      planExpiry: { $gt: new Date() },
+      planType: category,
+    });
+
+    // ✅ 5️⃣ Save notifications in DB
+    const notifications = subscribedUsers.map((user) => ({
+      userId: user._id,
+      message: `New ${category} tip added: ${stock_name}`,
+      seen: false,
+      createdAt: new Date(),
+    }));
+
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+    }
+
+    // ✅ 6️⃣ Send socket events safely
+    const io = getIO();
+    if (io) {
+      subscribedUsers.forEach((user) => {
+        io.emit("newNotification", {
+          userId: user._id.toString(),
+          message: `New ${category} tip added: ${stock_name}`,
+          createdAt: new Date(),
+        });
+      });
+    } else {
+      console.warn("⚠️ Socket.io not initialized, skipping emit.");
+    }
+
     return NextResponse.json(newTip, { status: 201 });
   } catch (error: any) {
     console.error("Error creating tip:", error);
@@ -88,6 +127,8 @@ export async function POST(req: NextRequest) {
   }
 }
 
+
+// 🗑 DELETE → Delete tip
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
   await connectDB();
@@ -105,11 +146,13 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "Tip ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Tip ID is required" },
+        { status: 400 }
+      );
     }
 
     const deletedTip = await Tip.findByIdAndDelete(id);
-
     if (!deletedTip) {
       return NextResponse.json({ error: "Tip not found" }, { status: 404 });
     }
@@ -124,16 +167,15 @@ export async function DELETE(req: NextRequest) {
   }
 }
 
+// ✏️ PUT → Update tip
 export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions);
   await connectDB();
 
-  // 1️⃣ Check authentication
   if (!session || !session.user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // 2️⃣ Only admin can update tips
   if (session.user.role !== "admin") {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
@@ -153,14 +195,12 @@ export async function PUT(req: NextRequest) {
       isDemo,
     } = body;
 
-    if (!id) {
+    if (!id)
       return NextResponse.json(
         { error: "Tip ID is required" },
         { status: 400 }
       );
-    }
 
-    // 3️⃣ Update the tip
     const updatedTip = await Tip.findByIdAndUpdate(
       id,
       {
@@ -174,12 +214,11 @@ export async function PUT(req: NextRequest) {
         isDemo,
         note,
       },
-      { new: true } // return the updated document
+      { new: true }
     );
 
-    if (!updatedTip) {
+    if (!updatedTip)
       return NextResponse.json({ error: "Tip not found" }, { status: 404 });
-    }
 
     return NextResponse.json(updatedTip, { status: 200 });
   } catch (error: any) {
