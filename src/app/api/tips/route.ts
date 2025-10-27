@@ -6,6 +6,7 @@ import Tip from "@/models/Tip";
 import User from "@/models/User";
 import Notification from "@/models/Notification";
 import { getIO } from "@/lib/socketServer";
+import admin from "@/lib/firebaseAdmin";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -89,6 +90,7 @@ export async function POST(req: NextRequest) {
       isSubscribed: true,
       planExpiry: { $gt: new Date() },
       planType: category,
+      fcmToken: { $exists: true, $ne: null },
     });
 
     // ✅ 5️⃣ Save notifications in DB
@@ -116,6 +118,27 @@ export async function POST(req: NextRequest) {
     } else {
       console.warn("⚠️ Socket.io not initialized, skipping emit.");
     }
+    // ✅ 5. Firebase push notifications
+    for (const user of subscribedUsers) {
+      try {
+        if (user.fcmToken) {
+          await admin.messaging().sendEachForMulticast({
+            tokens: [user.fcmToken],
+            notification: {
+              title: "📈 New Trading Tip!",
+              body: `${category.toUpperCase()} — ${stock_name}`,
+            },
+            webpush: {
+              fcmOptions: {
+                link: `${process.env.NEXT_PUBLIC_SITE_URL}/tips`,
+              },
+            },
+          });
+        }
+      } catch (err) {
+        console.error(`Failed to send FCM to ${user.email}:`, err.message);
+      }
+    }
 
     return NextResponse.json(newTip, { status: 201 });
   } catch (error: any) {
@@ -126,7 +149,6 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
 
 // 🗑 DELETE → Delete tip
 export async function DELETE(req: NextRequest) {

@@ -3,6 +3,7 @@ import "./globals.css";
 import SessionWrapper from "@/components/SessionWrapper";
 import ToastContainer from "@/components/ToastContainer";
 import Navbar from "@/components/Navbar";
+import NotificationPermission from "@/components/NotificationPermission";
 
 export const metadata: Metadata = {
   title: "AdChartView",
@@ -20,6 +21,7 @@ export default function RootLayout({
         <SessionWrapper>
           <Navbar />
           {children}
+          <NotificationPermission/>
           <ToastContainer />
         </SessionWrapper>
       </body>

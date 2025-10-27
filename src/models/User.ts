@@ -17,6 +17,7 @@ const userSchema = new Schema(
       default: null,
     },
     planExpiry: { type: Date, default: null },
+    fcmToken: { type: String },
   },
   { timestamps: true }
 );
