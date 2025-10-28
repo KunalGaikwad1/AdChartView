@@ -89,6 +89,7 @@ export async function POST(req: NextRequest) {
       isSubscribed: true,
       planExpiry: { $gt: new Date() },
       planType: category,
+      oneSignalUserId: { $exists: true, $ne: null },
     });
 
     // ✅ 5️⃣ Save notifications in DB
@@ -115,6 +116,24 @@ export async function POST(req: NextRequest) {
       });
     } else {
       console.warn("⚠️ Socket.io not initialized, skipping emit.");
+    }
+
+      // Send Push Notifications via OneSignal
+    for (const user of subscribedUsers) {
+      await fetch("https://onesignal.com/api/v1/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          Authorization: `Basic ${process.env.ONESIGNAL_API_KEY}`,
+        },
+        body: JSON.stringify({
+          app_id: process.env.ONESIGNAL_APP_ID,
+          include_aliases: { external_id: [user.oneSignalUserId] },
+          headings: { en: "📈 New Tip Added!" },
+          contents: { en: `${category.toUpperCase()} — ${stock_name}` },
+          url: `${process.env.NEXT_PUBLIC_SITE_URL}/tips`,
+        }),
+      });
     }
 
     return NextResponse.json(newTip, { status: 201 });
