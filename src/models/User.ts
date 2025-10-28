@@ -17,6 +17,7 @@ const userSchema = new Schema(
       default: null,
     },
     planExpiry: { type: Date, default: null },
+    oneSignalUserId: { type: String, default: null },
   },
   { timestamps: true }
 );
