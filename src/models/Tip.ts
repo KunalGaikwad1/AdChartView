@@ -5,7 +5,7 @@ const TipSchema = new Schema(
   {
     category: {
       type: String,
-      enum: ["equity", "futures", "options"],
+      enum: ["equity", "fno", "forex_crypto"],
       required: true,
     },
     stockName: { type: String, required: true },

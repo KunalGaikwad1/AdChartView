@@ -6,17 +6,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  PlusCircle,
-  Trash2,
-  Loader2,
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlusCircle, Trash2, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -53,7 +44,7 @@ export default function ManagePlans() {
     planType: "equity",
   });
 
-  // Protect route
+  // ✅ Protect route
   useEffect(() => {
     if (status === "loading") return;
     if (!session) router.push("/login");
@@ -149,7 +140,7 @@ export default function ManagePlans() {
                   />
                 </div>
 
-                {/* Plan Type */}
+                {/* ✅ Plan Type */}
                 <div className="space-y-2">
                   <Label>Plan Type</Label>
                   <Select
@@ -163,8 +154,12 @@ export default function ManagePlans() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="equity">Equity</SelectItem>
-                      <SelectItem value="futures">Futures</SelectItem>
-                      <SelectItem value="options">Options</SelectItem>
+                      <SelectItem value="fno">
+                        FnO (Options & Futures)
+                      </SelectItem>
+                      <SelectItem value="forex_crypto">
+                        Forex / Crypto
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -245,8 +240,8 @@ export default function ManagePlans() {
                       <div>
                         <h3 className="font-semibold">
                           {plan.name}{" "}
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded ml-2">
-                            {plan.planType}
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded ml-2 capitalize">
+                            {plan.planType.replace("_", " ")}
                           </span>
                         </h3>
                         <p className="text-sm text-muted-foreground">

@@ -3,13 +3,13 @@ import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
-import { Lock, Loader2, AlertCircle } from "lucide-react";
+import { Lock, Loader2 } from "lucide-react";
 import Link from "next/link";
 import TipCard from "@/components/TipCard";
 
 interface Tip {
   _id: string;
-  category: "equity" | "futures" | "options";
+  category: "equity" | "fno" | "forex_crypto";
   stockName: string;
   action: "BUY" | "SELL" | string;
   entryPrice: number;
@@ -25,7 +25,6 @@ export default function TipsPage() {
   const [tips, setTips] = useState<Tip[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [planType, setPlanType] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTips = async () => {
@@ -36,6 +35,7 @@ export default function TipsPage() {
 
         setTips(data);
 
+        // Determine if user is subscribed
         if (data.length > 0 && !data.some((t: Tip) => t.isDemo)) {
           setIsSubscribed(true);
         } else {
@@ -57,9 +57,10 @@ export default function TipsPage() {
       </div>
     );
 
+  // Filter tips by category
   const equityTips = tips.filter((t) => t.category === "equity");
-  const futureTips = tips.filter((t) => t.category === "futures");
-  const optionTips = tips.filter((t) => t.category === "options");
+  const fnoTips = tips.filter((t) => t.category === "fno");
+  const forexCryptoTips = tips.filter((t) => t.category === "forex_crypto");
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,7 +72,7 @@ export default function TipsPage() {
               Today&apos;s Premium Tips
             </h1>
             <p className="text-lg text-muted-foreground">
-              Get expert stock calls based on your active plan.
+              Get expert trading calls based on your active plan.
             </p>
           </div>
 
@@ -94,65 +95,93 @@ export default function TipsPage() {
             </div>
           )}
 
+          {/* Tabs for categories */}
           <Tabs defaultValue="equity" className="w-full">
             <TabsList className="grid grid-cols-3 mb-8 h-auto p-1 bg-muted">
               <TabsTrigger value="equity" className="text-base py-3">
                 Equity ({equityTips.length})
               </TabsTrigger>
-              <TabsTrigger value="futures" className="text-base py-3">
-                Futures ({futureTips.length})
+              <TabsTrigger value="fno" className="text-base py-3">
+                FnO (Options & Futures) ({fnoTips.length})
               </TabsTrigger>
-              <TabsTrigger value="options" className="text-base py-3">
-                Options ({optionTips.length})
+              <TabsTrigger value="forex_crypto" className="text-base py-3">
+                Forex / Crypto ({forexCryptoTips.length})
               </TabsTrigger>
             </TabsList>
 
+            {/* Equity Tab */}
             <TabsContent value="equity" className="space-y-6">
-              {equityTips.map((tip) => (
-                <TipCard
-                  key={tip._id}
-                  stockName={tip.stockName}
-                  action={tip.action.toUpperCase() === "SELL" ? "SELL" : "BUY"}
-                  entryPrice={tip.entryPrice}
-                  targetPrice={tip.targetPrice}
-                  stopLoss={tip.stopLoss}
-                  timeframe={tip.timeframe}
-                  createdAt={tip.createdAt}
-                  note={tip.note}
-                />
-              ))}
+              {equityTips.length > 0 ? (
+                equityTips.map((tip) => (
+                  <TipCard
+                    key={tip._id}
+                    stockName={tip.stockName}
+                    action={
+                      tip.action?.toUpperCase() === "SELL" ? "SELL" : "BUY"
+                    }
+                    entryPrice={tip.entryPrice}
+                    targetPrice={tip.targetPrice}
+                    stopLoss={tip.stopLoss}
+                    timeframe={tip.timeframe}
+                    createdAt={tip.createdAt}
+                    note={tip.note}
+                  />
+                ))
+              ) : (
+                <p className="text-center text-muted-foreground">
+                  No Equity tips available
+                </p>
+              )}
             </TabsContent>
 
-            <TabsContent value="futures" className="space-y-6">
-              {futureTips.map((tip) => (
-                <TipCard
-                  key={tip._id}
-                  stockName={tip.stockName}
-                  action={tip.action.toUpperCase() === "SELL" ? "SELL" : "BUY"}
-                  entryPrice={tip.entryPrice}
-                  targetPrice={tip.targetPrice}
-                  stopLoss={tip.stopLoss}
-                  timeframe={tip.timeframe}
-                  createdAt={tip.createdAt}
-                  note={tip.note}
-                />
-              ))}
+            {/* FnO Tab */}
+            <TabsContent value="fno" className="space-y-6">
+              {fnoTips.length > 0 ? (
+                fnoTips.map((tip) => (
+                  <TipCard
+                    key={tip._id}
+                    stockName={tip.stockName}
+                    action={
+                      tip.action?.toUpperCase() === "SELL" ? "SELL" : "BUY"
+                    }
+                    entryPrice={tip.entryPrice}
+                    targetPrice={tip.targetPrice}
+                    stopLoss={tip.stopLoss}
+                    timeframe={tip.timeframe}
+                    createdAt={tip.createdAt}
+                    note={tip.note}
+                  />
+                ))
+              ) : (
+                <p className="text-center text-muted-foreground">
+                  No FnO tips available
+                </p>
+              )}
             </TabsContent>
 
-            <TabsContent value="options" className="space-y-6">
-              {optionTips.map((tip) => (
-                <TipCard
-                  key={tip._id}
-                  stockName={tip.stockName}
-                  action={tip.action.toUpperCase() === "SELL" ? "SELL" : "BUY"}
-                  entryPrice={tip.entryPrice}
-                  targetPrice={tip.targetPrice}
-                  stopLoss={tip.stopLoss}
-                  timeframe={tip.timeframe}
-                  createdAt={tip.createdAt}
-                  note={tip.note}
-                />
-              ))}
+            {/* Forex / Crypto Tab */}
+            <TabsContent value="forex_crypto" className="space-y-6">
+              {forexCryptoTips.length > 0 ? (
+                forexCryptoTips.map((tip) => (
+                  <TipCard
+                    key={tip._id}
+                    stockName={tip.stockName}
+                    action={
+                      tip.action?.toUpperCase() === "SELL" ? "SELL" : "BUY"
+                    }
+                    entryPrice={tip.entryPrice}
+                    targetPrice={tip.targetPrice}
+                    stopLoss={tip.stopLoss}
+                    timeframe={tip.timeframe}
+                    createdAt={tip.createdAt}
+                    note={tip.note}
+                  />
+                ))
+              ) : (
+                <p className="text-center text-muted-foreground">
+                  No Forex / Crypto tips available
+                </p>
+              )}
             </TabsContent>
           </Tabs>
         </div>
