@@ -9,7 +9,7 @@ const SubscriptionSchema = new mongoose.Schema(
     planType: {
       type: String,
       required: true,
-      enum: ["equity", "futures", "options"],
+      enum: ["equity", "fno", "forex_crypto"],
     },
   },
   { timestamps: true }

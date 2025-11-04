@@ -225,8 +225,12 @@ const ManageTipsPage = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="equity">Equity</SelectItem>
-                      <SelectItem value="futures">Futures</SelectItem>
-                      <SelectItem value="options">Options</SelectItem>
+                      <SelectItem value="fno">
+                        FnO (Options & Futures)
+                      </SelectItem>
+                      <SelectItem value="forex_crypto">
+                        Forex / Crypto
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

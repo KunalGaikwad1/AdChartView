@@ -101,7 +101,7 @@ export default function LoginHistoryPage() {
                       <TableCell>
                         {format(
                           new Date(login.loginAt),
-                          "MMM dd, yyyy HH:mm:ss"
+                          "MMM dd, yyyy hh:mm:ss a"
                         )}
                       </TableCell>
                       <TableCell>{login.user.fullName || "N/A"}</TableCell>
