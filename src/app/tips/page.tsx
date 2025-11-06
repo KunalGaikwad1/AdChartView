@@ -26,29 +26,35 @@ export default function TipsPage() {
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
 
-  useEffect(() => {
-    const fetchTips = async () => {
-      try {
-        const res = await fetch("/api/tips");
-        if (!res.ok) throw new Error("Failed to fetch tips");
-        const data = await res.json();
+ useEffect(() => {
+  const fetchData = async () => {
+    try {
+      // 1️⃣ Fetch user subscription status
+      const userRes = await fetch("/api/user/subscriptions");
+      const userData = await userRes.json();
 
-        setTips(data);
+      // 2️⃣ Fetch tips
+      const res = await fetch("/api/tips");
+      const tipsData = await res.json();
 
-        // Determine if user is subscribed
-        if (data.length > 0 && !data.some((t: Tip) => t.isDemo)) {
-          setIsSubscribed(true);
-        } else {
-          setIsSubscribed(false);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+      setTips(tipsData);
+
+      // 3️⃣ Set subscription state properly
+      if (userData.activePlans && userData.activePlans.length > 0) {
+        setIsSubscribed(true);
+      } else {
+        setIsSubscribed(false);
       }
-    };
-    fetchTips();
-  }, []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   if (loading)
     return (
@@ -76,7 +82,7 @@ export default function TipsPage() {
             </p>
           </div>
 
-          {!isSubscribed && (
+       
             <div className="bg-gradient-to-r from-accent/10 to-success/10 border border-accent/20 rounded-xl p-6 text-center mb-8">
               <div className="flex flex-col items-center justify-center gap-2 mb-3">
                 <Lock className="h-6 w-6 text-accent" />
@@ -93,8 +99,7 @@ export default function TipsPage() {
                 </Button>
               </Link>
             </div>
-          )}
-
+          
           {/* Tabs for categories */}
           <Tabs defaultValue="equity" className="w-full">
             <TabsList className="grid grid-cols-3 mb-8 h-auto p-1 bg-muted">

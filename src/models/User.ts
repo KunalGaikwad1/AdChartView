@@ -11,12 +11,13 @@ const userSchema = new Schema(
     phone: String,
     profileCompleted: { type: Boolean, default: false },
     isSubscribed: { type: Boolean, default: false },
-    planType: {
-      type: String,
-      enum: ["equity", "futures", "options", null],
-      default: null,
+    subscriptions: [
+    {
+      planType: { type: String,   enum: ["equity", "fno", "forex_crypto", null],},
+      planExpiry: Date,
+      isActive: Boolean,
     },
-    planExpiry: { type: Date, default: null },
+  ],
     oneSignalUserId: { type: String, default: null },
   },
   { timestamps: true }
