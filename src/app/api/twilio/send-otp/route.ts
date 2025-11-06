@@ -1,31 +1,45 @@
 import { NextResponse } from "next/server";
-import Twilio from "twilio";
-
-const accountSid = process.env.TWILIO_ACCOUNT_SID!;
-const authToken = process.env.TWILIO_AUTH_TOKEN!;
-const verifyServiceSid = process.env.TWILIO_VERIFY_SID!;
-
-const client = Twilio(accountSid, authToken);
+import { connectDB } from "@/lib/mongodb";
+import Otp from "@/models/Otp";
 
 export async function POST(req: Request) {
   try {
-    const { phone } = await req.json();
+    await connectDB(); // ✅ Ensure DB connected
 
+    const { phone } = await req.json();
     if (!phone) {
       return NextResponse.json({ success: false, error: "Phone number required" }, { status: 400 });
     }
 
-    // Always include +91 for India
-    const to = `+91${phone.replace(/^0+/, "")}`;
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    const verification = await client.verify.v2
-      .services(verifyServiceSid)
-      .verifications.create({
-        to,
-        channel: "sms",
-      });
+    // ✅ 5 Min Expiry Set
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-    return NextResponse.json({ success: true, sid: verification.sid });
+    // ✅ Remove old OTP if exists
+    await Otp.deleteMany({ phone });
+
+    // ✅ Save new OTP
+    await Otp.create({ phone, code: otp, expiresAt });
+
+    // ✅ Send SMS via Fast2SMS
+    await fetch("https://www.fast2sms.com/dev/bulkV2", {
+      method: "POST",
+      headers: {
+        authorization: process.env.FAST2SMS_API_KEY!,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        route: "v3",
+        sender_id: "TXTIND",
+        message: `Your AdChartView verification code is ${otp}. It expires in 5 minutes.`,
+        language: "english",
+        numbers: phone,
+      }),
+    });
+
+    return NextResponse.json({ success: true, message: "OTP sent successfully" });
+
   } catch (err: any) {
     console.error("send-otp error:", err.message);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

@@ -1,34 +1,36 @@
 import { NextResponse } from "next/server";
-import Twilio from "twilio";
-
-const accountSid = process.env.TWILIO_ACCOUNT_SID!;
-const authToken = process.env.TWILIO_AUTH_TOKEN!;
-const verifyServiceSid = process.env.TWILIO_VERIFY_SID!;
-
-const client = Twilio(accountSid, authToken);
+import { connectDB } from "@/lib/mongodb";
+import Otp from "@/models/Otp";
 
 export async function POST(req: Request) {
   try {
-    const { phone, code } = await req.json();
+    await connectDB();
 
+    const { phone, code } = await req.json();
     if (!phone || !code) {
-      return NextResponse.json({ success: false, error: "Phone and code required" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Phone & OTP required" }, { status: 400 });
     }
 
-    const to = `+91${phone.replace(/^0+/, "")}`;
+    const otpEntry = await Otp.findOne({ phone });
 
-    const verificationCheck = await client.verify.v2
-      .services(verifyServiceSid)
-      .verificationChecks.create({
-        to,
-        code,
-      });
+    if (!otpEntry) {
+      return NextResponse.json({ success: false, error: "OTP expired or not sent" }, { status: 400 });
+    }
 
-    if (verificationCheck.status === "approved") {
-      return NextResponse.json({ success: true });
-    } else {
+    if (otpEntry.expiresAt < new Date()) {
+      await Otp.deleteOne({ phone });
+      return NextResponse.json({ success: false, error: "OTP expired" }, { status: 400 });
+    }
+
+    if (otpEntry.code !== code) {
       return NextResponse.json({ success: false, error: "Invalid OTP" }, { status: 400 });
     }
+
+    // ✅ Verified successfully — Remove OTP
+    await Otp.deleteOne({ phone });
+
+    return NextResponse.json({ success: true });
+
   } catch (err: any) {
     console.error("verify-otp error:", err.message);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
