@@ -93,9 +93,9 @@ export async function POST(req: NextRequest) {
 
     // ✅ 4️⃣ Find subscribed users (with active plan matching tip category)
     const subscribedUsers = await User.find({
-      "subscriptions.planType": category,
-      "subscriptions.planExpiry": { $gt: new Date() },
-      oneSignalUserId: { $exists: true, $ne: null },
+      isSubscribed: true,
+      planExpiry: { $gt: new Date() },
+      planType: category,
     });
 
     // ✅ 5️⃣ Save notifications in DB
