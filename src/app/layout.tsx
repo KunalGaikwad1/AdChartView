@@ -10,16 +10,13 @@ export const metadata: Metadata = {
   description: "Premium stock tips and advisory platform",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" className="dark">
-      <head>
-        {/* Load OneSignal SDK */}
-        <script
-          src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
-          async
-        ></script>
-      </head>
       <body>
         <SessionWrapper>
           <Navbar />
