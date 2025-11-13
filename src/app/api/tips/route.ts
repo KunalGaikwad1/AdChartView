@@ -141,28 +141,23 @@ export async function POST(req: NextRequest) {
 
     // ✅ 7️⃣ Send push notifications via OneSignal
     console.log("🧩 OneSignal Push Start: ", subscribedUsers.length, "users");
-
-    await Promise.all(
-      subscribedUsers.map(async (user) => {
-        if (!user.oneSignalUserId) return;
-        console.log("🔔 Sending push to:", user.email, user.oneSignalUserId);
-
-        await fetch("https://onesignal.com/api/v1/notifications", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            Authorization: `Basic ${process.env.ONESIGNAL_API_KEY}`,
-          },
-          body: JSON.stringify({
-            app_id: process.env.ONESIGNAL_APP_ID,
-            include_aliases: { external_id: [user.oneSignalUserId] },
-            headings: { en: "📈 New Tip Added!" },
-            contents: { en: `${category.toUpperCase()} — ${stock_name}` },
-            url: `${process.env.NEXT_PUBLIC_SITE_URL}/tips`,
-          }),
-        });
-      })
-    );
+    for (const user of subscribedUsers) {
+      await fetch("https://onesignal.com/api/v1/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          Authorization: `Basic ${process.env.ONESIGNAL_API_KEY}`,
+        },  
+        body: JSON.stringify({
+          app_id: process.env.ONESIGNAL_APP_ID,
+          include_aliases: { external_id: subscribedUsers.map(u => u.oneSignalUserId) },
+          headings: { en: "📈 New Tip Added!" },
+          contents: { en: `${category.toUpperCase()} — ${stock_name}` },
+          url: `${process.env.NEXT_PUBLIC_SITE_URL}/tips`,
+        }),
+      });
+       console.log("🔔 Sending push to:", user.email, user.oneSignalUserId);
+    }
 
     return NextResponse.json(newTip, { status: 201 });
   } catch (error: any) {

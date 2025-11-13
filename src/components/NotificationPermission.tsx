@@ -25,32 +25,26 @@ export default function NotificationPermission() {
         OneSignal.Notifications.requestPermission();
 
         // Listen for permission and subscription updates
-        OneSignal.Notifications.addEventListener(
-          "permissionChange",
-          (permission: any) => {
-            console.log("🔔 Permission changed:", permission);
+        OneSignal.Notifications.addEventListener("permissionChange", (permission: any) => {
+          console.log("🔔 Permission changed:", permission);
+        });
+
+        OneSignal.User.PushSubscription.addEventListener("change", async (subscription: any) => {
+          const userId = OneSignal.User.PushSubscription.id;
+          console.log("📨 Push subscription changed. New ID:", userId);
+
+          if (userId) {
+            const res = await fetch("/api/saveOneSignalId", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ oneSignalUserId: userId }),
+            });
+
+            const data = await res.json();
+            console.log("✅ Backend response:", data);
+            toast({ title: "Notifications Enabled 🔔" });
           }
-        );
-
-        OneSignal.User.PushSubscription.addEventListener(
-          "change",
-          async (subscription: any) => {
-            const userId = OneSignal.User.PushSubscription.id;
-            console.log("📨 Push subscription changed. New ID:", userId);
-
-            if (userId) {
-              const res = await fetch("/api/saveOneSignalId", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ oneSignalUserId: userId }),
-              });
-
-              const data = await res.json();
-              console.log("✅ Backend response:", data);
-              toast({ title: "Notifications Enabled 🔔" });
-            }
-          }
-        );
+        });
       } catch (err) {
         console.error("❌ OneSignal init error:", err);
       }
