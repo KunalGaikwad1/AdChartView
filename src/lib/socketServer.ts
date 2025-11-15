@@ -15,10 +15,22 @@ export const initSocket = (server: HTTPServer) => {
   });
 
   io.on("connection", (socket) => {
-    console.log("✅ New client connected:", socket.id);
-
-    socket.on("disconnect", () => {
-      console.log("❌ Client disconnected:", socket.id);
+    socket.on("join", (userId) => {
+      if (!userId) return;
+      try {
+        socket.join(userId.toString());
+        console.log(`Socket ${socket.id} joined room ${userId}`);
+      } catch (err) {
+        console.error("Socket join error:", err);
+      }
+    });
+    socket.on("leave", (userId) => {
+      if (!userId) return;
+      try {
+        socket.leave(userId.toString());
+      } catch (err) {
+        console.error("Socket leave error:", err);
+      }
     });
   });
 
