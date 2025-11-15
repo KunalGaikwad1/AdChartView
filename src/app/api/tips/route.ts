@@ -154,19 +154,15 @@ export async function POST(req: NextRequest) {
         await fetch("https://onesignal.com/api/v1/notifications", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            // Server REST API key. Set in Vercel as ONESIGNAL_API_KEY
+            "Content-Type": "application/json",
             Authorization: `Basic ${process.env.ONESIGNAL_API_KEY}`,
           },
           body: JSON.stringify({
-            app_id: process.env.ONESIGNAL_APP_ID, // server app id (set in server env)
-            // target external user ids (use include_external_user_ids)
-            include_external_user_ids: onesignalTargetIds,
+            app_id: process.env.ONESIGNAL_APP_ID,
+            include_player_ids: onesignalTargetIds, // THE KEY THAT WORKS
             headings: { en: "📈 New Tip Added!" },
             contents: { en: `${category.toUpperCase()} — ${stock_name}` },
-            url: `${
-              process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL
-            }/tips`,
+            url: `${process.env.NEXT_PUBLIC_SITE_URL}/tips`,
           }),
         });
       } catch (err) {
