@@ -125,38 +125,73 @@ export async function POST(req: NextRequest) {
       await Notification.insertMany(notifications);
     }
 
-    // ✅ 6️⃣ Send socket events safely
+    // // ✅ 6️⃣ Send socket events safely
+    // const io = getIO();
+    // if (io) {
+    //   subscribedUsers.forEach((user) => {
+    //     io.emit("newNotification", {
+    //       userId: user._id.toString(),
+    //       message: `New ${category} tip added: ${stock_name}`,
+    //       createdAt: new Date(),
+    //     });
+    //   });
+    // } else {
+    //   console.warn("⚠️ Socket.io not initialized, skipping emit.");
+    // }
+    // ✅ 7️⃣ Send push notifications via OneSignal (single request for all)
+    const onesignalTargetIds = subscribedUsers
+      .map((u) => u.oneSignalUserId)
+      .filter(Boolean); // remove null/undefined
+
+    console.log(
+      "🧩 OneSignal Push Start: ",
+      onesignalTargetIds.length,
+      "users"
+    );
+
+    if (onesignalTargetIds.length > 0) {
+      try {
+        await fetch("https://onesignal.com/api/v1/notifications", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            // Server REST API key. Set in Vercel as ONESIGNAL_API_KEY
+            Authorization: `Basic ${process.env.ONESIGNAL_API_KEY}`,
+          },
+          body: JSON.stringify({
+            app_id: process.env.ONESIGNAL_APP_ID, // server app id (set in server env)
+            // target external user ids (use include_external_user_ids)
+            include_external_user_ids: onesignalTargetIds,
+            headings: { en: "📈 New Tip Added!" },
+            contents: { en: `${category.toUpperCase()} — ${stock_name}` },
+            url: `${
+              process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL
+            }/tips`,
+          }),
+        });
+      } catch (err) {
+        console.error("Error sending OneSignal push:", err);
+      }
+    }
+
+    // ✅ 8️⃣ Send socket events targeted to each user's room (if socket is available)
     const io = getIO();
     if (io) {
       subscribedUsers.forEach((user) => {
-        io.emit("newNotification", {
-          userId: user._id.toString(),
-          message: `New ${category} tip added: ${stock_name}`,
-          createdAt: new Date(),
-        });
+        if (!user._id) return;
+        // use the user's id as the room name (client joins this room)
+        try {
+          io.to(user._id.toString()).emit("newNotification", {
+            userId: user._id.toString(),
+            message: `New ${category} tip added: ${stock_name}`,
+            createdAt: new Date(),
+          });
+        } catch (err) {
+          console.warn("Socket emit failed for user:", user._id, err);
+        }
       });
     } else {
       console.warn("⚠️ Socket.io not initialized, skipping emit.");
-    }
-
-    // ✅ 7️⃣ Send push notifications via OneSignal
-    console.log("🧩 OneSignal Push Start: ", subscribedUsers.length, "users");
-    for (const user of subscribedUsers) {
-      await fetch("https://onesignal.com/api/v1/notifications", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          Authorization: `Basic ${process.env.ONESIGNAL_API_KEY}`,
-        },  
-        body: JSON.stringify({
-          app_id: process.env.ONESIGNAL_APP_ID,
-          include_aliases: { external_id: subscribedUsers.map(u => u.oneSignalUserId) },
-          headings: { en: "📈 New Tip Added!" },
-          contents: { en: `${category.toUpperCase()} — ${stock_name}` },
-          url: `${process.env.NEXT_PUBLIC_SITE_URL}/tips`,
-        }),
-      });
-       console.log("🔔 Sending push to:", user.email, user.oneSignalUserId);
     }
 
     return NextResponse.json(newTip, { status: 201 });

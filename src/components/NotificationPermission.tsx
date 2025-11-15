@@ -7,46 +7,69 @@ export default function NotificationPermission() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // @ts-ignore
+    // Ensure OneSignalDeferred queue exists (OneSignal page SDK uses this)
+    // @ts-expect-error only in browser
     window.OneSignalDeferred = window.OneSignalDeferred || [];
-    // @ts-ignore
-    window.OneSignalDeferred.push(async function (OneSignal) {
+    // @ts-expect-error only in browser
+    window.OneSignalDeferred.push(async function (OneSignal: any) {
       try {
+        // init OneSignal with the public app id (set in Vercel as NEXT_PUBLIC_ONESIGNAL_APP_ID)
         await OneSignal.init({
-          appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID!,
-          safari_web_id: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID!,
-          notifyButton: { enable: true },
+          appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID,
           allowLocalhostAsSecureOrigin: true,
+          // optionally enable the notify button UI
+          notifyButton: { enable: true },
         });
 
-        console.log("✅ OneSignal initialized");
+        // If push supported, check subscription
+        const isSupported = await OneSignal.isPushNotificationsSupported();
+        if (!isSupported) {
+          console.info("Push not supported in this browser.");
+          return;
+        }
 
-        // Prompt user for permission
-        OneSignal.Notifications.requestPermission();
+        // When subscription changes (user allows), save OneSignal user id to backend
+        OneSignal.on("subscriptionChange", async (isSubscribed: boolean) => {
+          try {
+            if (!isSubscribed) return;
+            const oneSignalUserId = await OneSignal.getUserId();
+            if (!oneSignalUserId) return;
 
-        // Listen for permission and subscription updates
-        OneSignal.Notifications.addEventListener("permissionChange", (permission: any) => {
-          console.log("🔔 Permission changed:", permission);
-        });
-
-        OneSignal.User.PushSubscription.addEventListener("change", async (subscription: any) => {
-          const userId = OneSignal.User.PushSubscription.id;
-          console.log("📨 Push subscription changed. New ID:", userId);
-
-          if (userId) {
+            // Send to backend to persist against current user session
             const res = await fetch("/api/saveOneSignalId", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ oneSignalUserId: userId }),
+              body: JSON.stringify({ oneSignalUserId }),
             });
 
-            const data = await res.json();
-            console.log("✅ Backend response:", data);
-            toast({ title: "Notifications Enabled 🔔" });
+            if (!res.ok) {
+              console.error("Failed to save OneSignal ID", await res.text());
+            } else {
+              console.log("Saved OneSignal ID:", oneSignalUserId);
+              toast({ title: "Notifications Enabled 🔔" });
+            }
+          } catch (err) {
+            console.error("Error saving OneSignal ID:", err);
           }
         });
+
+        // If already subscribed earlier, get the id and save it as well
+        const alreadyId = await OneSignal.getUserId();
+        if (alreadyId) {
+          // call backend once
+          try {
+            await fetch("/api/saveOneSignalId", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ oneSignalUserId: alreadyId }),
+            });
+            console.log("Saved existing OneSignal ID:", alreadyId);
+          } catch (err) {
+            console.error("Saving existing OneSignal ID failed:", err);
+          }
+        }
       } catch (err) {
-        console.error("❌ OneSignal init error:", err);
+        console.error("OneSignal init error:", err);
       }
     });
   }, []);
